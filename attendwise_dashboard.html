@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AttendWise — Smart Attendance Planner</title>
+<style>
+:root{
+  --bg:#f6f8fc;--card:#fff;--text:#162033;--muted:#64748b;--line:#e7ebf2;
+  --blue:#2563eb;--blue2:#eff6ff;--green:#16a34a;--greenbg:#ecfdf3;
+  --amber:#d97706;--amberbg:#fff7ed;--red:#dc2626;--redbg:#fef2f2;
+}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+button,input,select{font:inherit}.app{display:flex;min-height:100vh}.side{width:245px;background:#111827;color:#fff;padding:26px 16px;position:fixed;inset:0 auto 0 0}
+.brand{font-size:22px;font-weight:800;padding:0 10px 28px}.brand b{color:#60a5fa}.nav{display:grid;gap:6px}.nav button{border:0;background:transparent;color:#cbd5e1;text-align:left;padding:12px 13px;border-radius:10px;cursor:pointer}.nav button.active,.nav button:hover{background:#1f2937;color:#fff}
+.main{margin-left:245px;width:calc(100% - 245px);padding:28px;max-width:1600px}.top{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:22px}.top h1{margin:0;font-size:30px}.top p{margin:6px 0;color:var(--muted)}.controls{display:flex;gap:10px;flex-wrap:wrap}.control{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+select{border:0;outline:0;background:transparent;font-weight:700;color:var(--text)}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 5px 18px rgba(15,23,42,.035)}.label{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}.value{font-size:30px;font-weight:850;margin-top:7px}.sub{font-size:12px;color:var(--muted);margin-top:4px}
+.alert{display:flex;align-items:flex-start;gap:12px;border-radius:14px;padding:16px 18px;margin-bottom:18px;border:1px solid #fecaca;background:var(--redbg)}.alert .icon{font-size:22px}.alert strong{display:block;margin-bottom:3px}.alert p{margin:0;color:#7f1d1d;font-size:14px}
+.layout{display:grid;grid-template-columns:minmax(0,2fr) minmax(320px,1fr);gap:18px}.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.section-head h2{font-size:18px;margin:0}.hint{font-size:12px;color:var(--muted)}
+.subjects{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.subject{cursor:pointer;transition:.18s}.subject:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(15,23,42,.07)}.row{display:flex;justify-content:space-between;gap:10px;align-items:center}.name{font-weight:800}.badge{font-size:10px;font-weight:800;padding:5px 8px;border-radius:99px}.safe{color:var(--green);background:var(--greenbg)}.warn{color:var(--amber);background:var(--amberbg)}.risk{color:var(--red);background:var(--redbg)}
+.percent{font-size:28px;font-weight:850;margin:14px 0 7px}.bar{height:8px;background:#edf0f5;border-radius:99px;overflow:hidden}.fill{height:100%;border-radius:99px}.mini{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}.mini div{background:#f8fafc;border-radius:9px;padding:9px;text-align:center}.mini b{display:block;font-size:14px}.mini span{font-size:10px;color:var(--muted)}
+.schedule{display:grid;gap:0}.class{display:flex;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}.class:last-child{border-bottom:0}.time{font-size:11px;color:var(--muted)}.class b{display:block;margin-top:3px}.pill{font-size:10px;font-weight:800;padding:6px 8px;border-radius:8px;height:max-content}
+.timetable{margin-top:18px}.week{display:grid;grid-template-columns:80px repeat(9,1fr);overflow:auto;border:1px solid var(--line);border-radius:12px}.week div{min-height:48px;padding:7px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);font-size:11px;background:#fff}.week .head{background:#f8fafc;font-weight:800;text-align:center}.week .day{font-weight:800;background:#f8fafc}.slot{font-weight:800;text-align:center}.slot:hover{background:var(--blue2)}
+.modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,.65);z-index:20;align-items:center;justify-content:center;padding:18px}.modal.open{display:flex}.modalbox{background:#fff;width:min(720px,100%);max-height:92vh;overflow:auto;border-radius:18px;padding:22px}.close{border:0;background:#f1f5f9;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:20px}.modalhead{display:flex;justify-content:space-between;gap:12px}.big{font-size:48px;font-weight:900;margin:12px 0}.grid4{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.metric{background:#f8fafc;padding:14px;border-radius:11px}.metric small{display:block;color:var(--muted);margin-bottom:5px}.metric b{font-size:18px}.sim{margin-top:14px;background:#f8fafc;border-radius:12px;padding:16px}.sim input{width:100%}.simresult{font-size:25px;font-weight:900;margin-top:8px}.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:12px}
+@media(max-width:1050px){.summary{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}}
+@media(max-width:760px){.side{display:none}.main{margin:0;width:100%;padding:16px}.subjects{grid-template-columns:1fr}.top{flex-direction:column}.summary{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+  <div class="brand">Attend<b>Wise</b></div>
+  <div class="nav">
+    <button class="active">Dashboard</button>
+    <button>Subjects</button><button>Timetable</button><button>Attendance Planner</button>
+  </div>
+</aside>
+<main class="main">
+  <div class="top">
+    <div>
+      <h1>Smart Attendance Dashboard</h1>
+      <p>Predict your attendance before you miss a class.</p>
+    </div>
+    <div class="controls">
+      <div class="control">Section:
+        <select id="sectionSelect"></select>
+      </div>
+      <div class="control">Semester: <b>29 Aug – 29 Nov 2026</b></div>
+    </div>
+  </div>
+
+  <div class="summary">
+    <div class="card"><div class="label">Overall attendance</div><div class="value" id="overall">—</div><div class="sub" id="overallSub"></div></div>
+    <div class="card"><div class="label">Safe subjects</div><div class="value safe" id="safeCount">—</div><div class="sub">90% or above</div></div>
+    <div class="card"><div class="label">Warning subjects</div><div class="value warn" id="warnCount">—</div><div class="sub">75% to 89.9%</div></div>
+    <div class="card"><div class="label">Detention risk</div><div class="value risk" id="riskCount">—</div><div class="sub">Below 75%</div></div>
+  </div>
+
+  <div class="alert" id="alert">
+    <div class="icon">⚠️</div><div><strong id="alertTitle">Attendance check</strong><p id="alertText"></p></div>
+  </div>
+
+  <div class="layout">
+    <section>
+      <div class="section-head"><h2>Subject intelligence</h2><span class="hint">Click any subject</span></div>
+      <div class="subjects" id="subjects"></div>
+
+      <div class="card timetable">
+        <div class="section-head"><h2>Weekly timetable</h2><span class="hint">A–F = subject slots from the supplied timetable</span></div>
+        <div class="week" id="week"></div>
+        <div class="legend"><span>Period 1: 09:00–09:50</span><span>2: 09:50–10:40</span><span>3: 10:50–11:40</span><span>4: 11:40–12:30</span><span>5: 12:30–01:20</span><span>6: 01:20–02:10</span><span>7: 02:10–03:00</span><span>8: 03:10–04:00</span><span>9: 04:00–04:50</span></div>
+      </div>
+    </section>
+
+    <aside>
+      <div class="card">
+        <div class="section-head"><h2>Upcoming classes</h2><span class="hint">Prioritized</span></div>
+        <div class="schedule" id="upcoming"></div>
+      </div>
+      <div class="card" style="margin-top:18px">
+        <div class="section-head"><h2>How the engine works</h2></div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.65;margin:0">
+          The dashboard uses the section timetable to count future classes between
+          <b>29 Aug 2026</b> and <b>29 Nov 2026</b>. It then calculates the classes
+          needed for 90%, the remaining absence buffer above 75%, and the best/worst
+          semester projection.
+        </p>
+      </div>
+    </aside>
+  </div>
+</main>
+</div>
+
+<div class="modal" id="modal">
+  <div class="modalbox">
+    <div class="modalhead"><div><h2 id="mName" style="margin:0"></h2><p id="mStatus" style="color:var(--muted);margin:4px 0"></p></div><button class="close" onclick="closeModal()">×</button></div>
+    <div class="big" id="mPct"></div>
+    <div class="bar"><div class="fill" id="mFill"></div></div>
+    <div class="grid4" style="margin-top:15px">
+      <div class="metric"><small>Attended</small><b id="mAtt"></b></div>
+      <div class="metric"><small>Conducted</small><b id="mCon"></b></div>
+      <div class="metric"><small>Classes remaining</small><b id="mRem"></b></div>
+      <div class="metric"><small>Needed for 90%</small><b id="m90"></b></div>
+      <div class="metric"><small>Safe absences before 75%</small><b id="mSafe"></b></div>
+      <div class="metric"><small>Can recover to 75%?</small><b id="mRecover"></b></div>
+      <div class="metric"><small>Final if all attended</small><b id="mFinal"></b></div>
+      <div class="metric"><small>Final if all missed</small><b id="mWorst"></b></div>
+    </div>
+    <div class="sim">
+      <b>What if I attend only some upcoming classes?</b>
+      <input id="simSlider" type="range" min="0" max="1" value="1" oninput="simulate()">
+      <div>Attend <b id="simN">1</b> of <b id="simTotal">1</b> remaining classes</div>
+      <div class="simresult" id="simPct">—</div>
+      <div id="simMsg" style="font-size:13px;color:var(--muted);margin-top:5px"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/*
+  DATA FROM THE SUPPLIED TIMETABLE IMAGES
+  ---------------------------------------
+  The images contain timetable SLOT letters (A-F/H) and subject-code tables.
+  Attendance values are demo values because no student's live attendance
+  record was supplied. Replace attended/conducted with portal values.
+
+  Current semester dates:
+  29 Aug 2026 -> 29 Nov 2026
+*/
+
+const SEM_START = new Date("2026-08-29T00:00:00");
+const SEM_END   = new Date("2026-11-29T23:59:59");
+
+/* Period labels visible in the supplied SRM timetable */
+const periods = [
+  "09:00–09:50","09:50–10:40","10:50–11:40","11:40–12:30",
+  "12:30–01:20","01:20–02:10","02:10–03:00","03:10–04:00","04:00–04:50"
+];
+
+/*
+  9 clearly identifiable timetable sheets/sections in the supplied images.
+  A 10th section can be added by copying one object below.
+*/
+const sections = {
+  "I-ECE-A": {
+    label:"I ECE-A",
+    subjects:{
+      A:"Advanced Calculus & Complex Analysis",
+      B:"Chemistry",
+      C:"Chemistry / Core",
+      D:"Physics",
+      E:"German",
+      F:"Philosophy of Engineering"
+    },
+    timetable:[
+      ["E","C","","A","","","F","E",""],
+      ["C","B","","A","","","", "",""],
+      ["B","E","","A","","","", "",""],
+      ["E","","","","","","","F",""],
+      ["D","A","","C","","","","",""]
+    ]
+  },
+  "II-ECE-DS-A": {
+    label:"II ECE-DS A",
+    subjects:{
+      A:"Transforms & Boundary Value Problems",
+      B:"Solid State Devices",
+      C:"Biomedical Signals & Systems",
+      D:"Electric & Electronic Circuits",
+      E:"Digital Logic for Medical Systems",
+      F:"Medical Physics"
+    },
+    timetable:[
+      ["E","A","","I","","","D","E",""],
+      ["C","A","E","D","","","C","",""],
+      ["A","B","C","D","","","E","H",""],
+      ["B","C","A","F","","","A","",""],
+      ["D","B","E","C","","","","",""]
+    ]
+  },
+  "II-ECE-DS-B": {
+    label:"II ECE-DS B",
+    subjects:{
+      A:"Transforms & Boundary Value Problems",
+      B:"Solid State Devices",
+      C:"Biomedical Signals & Systems",
+      D:"Electric & Electronic Circuits",
+      E:"Digital Logic for Medical Systems",
+      F:"Medical Physics"
+    },
+    timetable:[
+      ["","", "", "LAB","", "", "D","B","C"],
+      ["LAB","","","", "", "", "C","D","E"],
+      ["G-401","","","", "", "", "A","E","A"],
+      ["H-TB-106","","","", "", "", "A","C","B"],
+      ["","","","", "", "", "F","A","B"]
+    ]
+  },
+  "III-BME": {
+    label:"III BME",
+    subjects:{
+      A:"Biomedical Engineering Subject A",
+      B:"Biomedical Engineering Subject B",
+      C:"Biomedical Engineering Subject C",
+      D:"Biomedical Engineering Subject D",
+      E:"Biomedical Engineering Subject E",
+      F:"Biomedical Engineering Subject F"
+    },
+    timetable:[
+      ["G-625","","MPMC LAB-107","","","E","B","F","H"],
+      ["BIO DSP LAB-108","", "G-625","","","C","D","A","B"],
+      ["","", "", "", "", "C","A","F","D"],
+      ["I-108","","","", "", "A","C","E","B"],
+      ["I-108","","","", "", "F","A","D","E"]
+    ]
+  },
+  "III-ECE-A": {
+    label:"III ECE-A",
+    subjects:{
+      A:"Discrete Mathematics",
+      B:"Microprocessor, Microcontroller & Interfacing Techniques",
+      C:"VLSI Design & Technology",
+      D:"System and Network on Chip",
+      E:"Machine Learning for All",
+      F:"Community Connect",
+      "B-Proj":"Project"
+    },
+    timetable:[
+      ["E","B","","B","A","","G-625","E",""],
+      ["H","D","","B","B-Proj","","G-625","",""],
+      ["C","A","","D","F","","","","LAB-108/309"],
+      ["A","E","","C","F","","LAB-108/309","",""],
+      ["D","A","","E","C","","","",""]
+    ]
+  },
+  "III-ECE-B": {
+    label:"III ECE-B",
+    subjects:{
+      A:"Discrete Mathematics",
+      B:"Microprocessor, Microcontroller & Interfacing Techniques",
+      C:"VLSI Design & Technology",
+      D:"System and Network on Chip",
+      E:"Machine Learning for All",
+      F:"Community Connect",
+      "B-Proj":"Project"
+    },
+    timetable:[
+      ["LAB-108/309","","","", "", "E","B","A","D"],
+      ["G-625","","","", "", "F","B","D","C"],
+      ["G-625","","","", "", "B-Proj","B","A","H"],
+      ["LAB-108/309","","","", "", "A","C","E","F"],
+      ["","","","", "", "C","A","E","D"]
+    ]
+  },
+  "III-ECE-C": {
+    label:"III ECE-C",
+    subjects:{
+      A:"Discrete Mathematics",
+      B:"Microprocessor, Microcontroller & Interfacing Techniques",
+      C:"VLSI Design & Technology",
+      D:"System and Network on Chip",
+      E:"Database Design and Management",
+      F:"Machine Learning for All"
+    },
+    timetable:[
+      ["E","B","","C","A","","","",""],
+      ["C","B","","D","F","","LAB-108/107","",""],
+      ["H","B","","A","C","","","","G-625"],
+      ["A","D","","E","F","","","",""],
+      ["D","A","","E","B-Proj","","G-625","","LAB-108/107"]
+    ]
+  },
+  "IV-ECE-A": {
+    label:"IV ECE-A",
+    subjects:{
+      A:"Behavioural Psychology",
+      B:"Wireless Communication & Antenna Systems",
+      C:"Computer Communication & Network Security",
+      D:"Semiconductor Memory Design",
+      E:"Scripting Language for Electronic Design Automation",
+      F:"Machine Learning for All"
+    },
+    timetable:[
+      ["C","A","","A","D","","","",""],
+      ["C","D","","B","F","","LAB-IST 108","",""],
+      ["B","", "", "E","F","","","",""],
+      ["F","A","","E","B","","","",""],
+      ["C","A","","D","E","","","",""]
+    ]
+  },
+  "IV-ECE-B": {
+    label:"IV ECE-B / additional supplied sheet",
+    subjects:{
+      A:"Behavioural Psychology",
+      B:"Wireless Communication & Antenna Systems",
+      C:"Computer Communication & Network Security",
+      D:"Semiconductor Memory Design",
+      E:"Scripting Language for Electronic Design Automation",
+      F:"Machine Learning for All"
+    },
+    timetable:[
+      ["C","A","","E","F","","","",""],
+      ["C","E","","F","B","","","",""],
+      ["C","D","","A","B","","","",""],
+      ["D","B","","A","","","","",""],
+      ["E","D","","F","","","","",""]
+    ]
+  }
+};
+
+/* Add a 10th slot for the challenge. This is intentionally editable. */
+sections["SECTION-10"] = {
+  label:"Section 10 — add supplied timetable",
+  subjects:{
+    A:"Subject A",B:"Subject B",C:"Subject C",D:"Subject D",E:"Subject E",F:"Subject F"
+  },
+  timetable:[
+    ["A","B","","C","","D","","E",""],
+    ["B","C","","D","","E","","F",""],
+    ["C","D","","E","","F","","A",""],
+    ["D","E","","F","","A","","B",""],
+    ["E","F","","A","","B","","C",""]
+  ]
+};
+
+const weekdays=["Monday","Tuesday","Wednesday","Thursday","Friday"];
+
+/*
+  Demo attendance records. Replace these with the student's portal data.
+  The dashboard then calculates everything from the real numbers.
+*/
+const attendanceData = {};
+Object.keys(sections).forEach((key,i)=>{
+  const names=sections[key].subjects;
+  attendanceData[key]={};
+  Object.keys(names).forEach((slot,j)=>{
+    const conducted=20 + ((i*3+j*2)%13);
+    const missed=(i+j)%5;
+    attendanceData[key][slot]={
+      attended:Math.max(0,conducted-missed),
+      conducted
+    };
+  });
+});
+
+function countFutureClasses(sectionKey, slot){
+  const sec=sections[sectionKey];
+  const entries=[];
+  const cursor=new Date(SEM_START);
+  while(cursor<=SEM_END){
+    const day=cursor.getDay(); // Mon=1 ... Fri=5
+    if(day>=1 && day<=5){
+      const row=sec.timetable[day-1]||[];
+      row.forEach((value,p)=>{
+        if(value===slot) entries.push(new Date(cursor));
+      });
+    }
+    cursor.setDate(cursor.getDate()+1);
+  }
+  /* Treat Sep 28, 2026 as the dashboard's current point for the challenge. */
+  const TODAY=new Date("2026-09-28T23:59:59");
+  return entries.filter(d=>d>TODAY).length;
+}
+
+function pct(a,t){return t?100*a/t:0}
+function to90(a,t){return Math.max(0,Math.ceil(9*t-10*a))}
+function safeAbs(a,t){return Math.max(0,Math.floor(a/0.75-t))}
+function finalPct(a,t,r){return pct(a+r,t+r)}
+function status(p){
+  if(p>=90)return ["SAFE","safe","#16a34a"];
+  if(p>=75)return ["WARNING","warn","#d97706"];
+  return ["DETENTION RISK","risk","#dc2626"];
+}
+
+function currentSection(){
+  return document.getElementById("sectionSelect").value;
+}
+
+function renderSectionOptions(){
+  const sel=document.getElementById("sectionSelect");
+  sel.innerHTML=Object.entries(sections).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join("");
+}
+
+function render(){
+  const key=currentSection(), sec=sections[key], data=attendanceData[key];
+  const rows=[];
+  let totalA=0,totalT=0,safe=0,warn=0,risk=0;
+
+  Object.entries(sec.subjects).forEach(([slot,name])=>{
+    const rec=data[slot]||{attended:0,conducted:0};
+    const p=pct(rec.attended,rec.conducted);
+    const r=countFutureClasses(key,slot);
+    const s=status(p);
+    if(p>=90)safe++;else if(p>=75)warn++;else risk++;
+    totalA+=rec.attended;totalT+=rec.conducted;
+    rows.push({slot,name,...rec,p,r,s});
+  });
+
+  document.getElementById("overall").textContent=pct(totalA,totalT).toFixed(1)+"%";
+  document.getElementById("overallSub").textContent=`${totalA} attended / ${totalT} conducted`;
+  document.getElementById("safeCount").textContent=safe;
+  document.getElementById("warnCount").textContent=warn;
+  document.getElementById("riskCount").textContent=risk;
+
+  rows.sort((a,b)=>a.p-b.p);
+  document.getElementById("subjects").innerHTML=rows.map(x=>{
+    const f=finalPct(x.attended,x.conducted,x.r);
+    return `<div class="card subject" onclick="openModal('${key}','${x.slot}')">
+      <div class="row"><div class="name">${x.name}</div><span class="badge ${x.s[1]}">${x.s[0]}</span></div>
+      <div class="percent" style="color:${x.s[2]}">${x.p.toFixed(1)}%</div>
+      <div class="bar"><div class="fill" style="width:${Math.min(x.p,100)}%;background:${x.s[2]}"></div></div>
+      <div class="sub">${x.attended} / ${x.conducted} attended · ${x.r} future classes</div>
+      <div class="mini">
+        <div><b>${to90(x.attended,x.conducted)}</b><span>to 90%</span></div>
+        <div><b>${safeAbs(x.attended,x.conducted)}</b><span>safe absences</span></div>
+        <div><b>${f.toFixed(1)}%</b><span>if all attended</span></div>
+      </div>
+    </div>`;
+  }).join("");
+
+  const urgent=rows[0];
+  const alert=document.getElementById("alert");
+  if(urgent && urgent.p<75){
+    alert.style.background="var(--redbg)";alert.style.borderColor="#fecaca";
+    document.getElementById("alertTitle").textContent=`${urgent.name} is below 75%`;
+    const canRecover=finalPct(urgent.attended,urgent.conducted,urgent.r)>=75;
+    document.getElementById("alertText").textContent=canRecover
+      ? `Attend at least ${Math.max(0,Math.ceil((0.75*urgent.conducted-urgent.attended)/0.25))} upcoming classes to cross 75%.`
+      : `Even attending every remaining scheduled class only reaches ${finalPct(urgent.attended,urgent.conducted,urgent.r).toFixed(1)}%.`;
+  }else{
+    alert.style.background="var(--greenbg)";alert.style.borderColor="#bbf7d0";
+    document.getElementById("alertTitle").textContent="No subject is currently in detention";
+    document.getElementById("alertText").textContent=warn
+      ? `${warn} subject(s) are between 75% and 90%. The planner below shows how many classes you can safely miss.`
+      : "All current subjects are at or above 90%.";
+  }
+
+  renderWeek(sec);
+  renderUpcoming(key,rows);
+}
+
+function renderWeek(sec){
+  const w=document.getElementById("week");
+  let html=`<div class="head">Day</div>`;
+  periods.forEach((p,i)=>html+=`<div class="head">${i+1}<br><span style="font-weight:500">${p.split("–")[0]}</span></div>`);
+  sec.timetable.forEach((row,di)=>{
+    html+=`<div class="day">${weekdays[di]}</div>`;
+    for(let i=0;i<9;i++){
+      const v=row[i]||"";
+      html+=`<div class="slot">${v||"—"}</div>`;
+    }
+  });
+  w.innerHTML=html;
+}
+
+function renderUpcoming(key,rows){
+  const sec=sections[key];
+  const out=[];
+  rows.forEach(x=>{
+    if(x.r>0){
+      /* Show the next occurrence based on timetable rows. */
+      sec.timetable.forEach((row,di)=>{
+        row.forEach((v,pi)=>{
+          if(v===x.slot && out.length<8) out.push({day:weekdays[di],time:periods[pi],name:x.name,p:x.p});
+        });
+      });
+    }
+  });
+  document.getElementById("upcoming").innerHTML=out.slice(0,8).map(x=>{
+    const [txt,cls]=x.p<75?["MUST ATTEND","risk"]:x.p<90?["RECOMMENDED","warn"]:["FLEXIBLE","safe"];
+    return `<div class="class"><div><span class="time">${x.day} · ${x.time}</span><b>${x.name}</b></div><span class="pill ${cls}">${txt}</span></div>`;
+  }).join("")||`<div style="color:var(--muted);font-size:13px">No upcoming classes found.</div>`;
+}
+
+let active=null;
+function openModal(key,slot){
+  const sec=sections[key], rec=attendanceData[key][slot]||{attended:0,conducted:0};
+  const name=sec.subjects[slot], r=countFutureClasses(key,slot), p=pct(rec.attended,rec.conducted), s=status(p);
+  active={key,slot,rec,r};
+  document.getElementById("mName").textContent=name;
+  document.getElementById("mStatus").textContent=s[0];
+  document.getElementById("mStatus").style.color=s[2];
+  document.getElementById("mPct").textContent=p.toFixed(1)+"%";
+  document.getElementById("mPct").style.color=s[2];
+  document.getElementById("mFill").style.width=Math.min(p,100)+"%";
+  document.getElementById("mFill").style.background=s[2];
+  document.getElementById("mAtt").textContent=rec.attended;
+  document.getElementById("mCon").textContent=rec.conducted;
+  document.getElementById("mRem").textContent=r;
+  document.getElementById("m90").textContent=to90(rec.attended,rec.conducted);
+  document.getElementById("mSafe").textContent=safeAbs(rec.attended,rec.conducted);
+  document.getElementById("mRecover").textContent=finalPct(rec.attended,rec.conducted,r)>=75?"YES":"NO";
+  document.getElementById("mFinal").textContent=finalPct(rec.attended,rec.conducted,r).toFixed(1)+"%";
+  document.getElementById("mWorst").textContent=pct(rec.attended,rec.conducted+r).toFixed(1)+"%";
+  const slider=document.getElementById("simSlider");slider.max=r;slider.value=r;
+  document.getElementById("simTotal").textContent=r;document.getElementById("modal").classList.add("open");simulate();
+}
+function simulate(){
+  if(!active)return;
+  const n=+document.getElementById("simSlider").value, r=active.r, rec=active.rec;
+  const p=pct(rec.attended+n,rec.conducted+r);
+  document.getElementById("simN").textContent=n;
+  document.getElementById("simPct").textContent=p.toFixed(1)+"%";
+  const msg=document.getElementById("simMsg");
+  if(p>=90){msg.textContent="✓ You finish at or above 90%.";msg.style.color="var(--green)"}
+  else if(p>=75){msg.textContent="⚠ You stay above the 75% detention threshold.";msg.style.color="var(--amber)"}
+  else{msg.textContent="✕ This plan finishes below 75%.";msg.style.color="var(--red)"}
+}
+function closeModal(){document.getElementById("modal").classList.remove("open")}
+
+renderSectionOptions();
+document.getElementById("sectionSelect").addEventListener("change",render);
+render();
+</script>
+</body>
+</html>
